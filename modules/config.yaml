@@ -1,0 +1,9 @@
+classname: Base
+name: Base CMS
+navigation:
+  home
+  impress
+  info
+  contact
+subviews:
+  news : news/index

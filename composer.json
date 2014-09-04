@@ -1,0 +1,9 @@
+{
+    "require": {
+    		"slim/slim": "2.*",
+        "erusev/parsedown": "1.0.1",
+        "mustangostang/spyc": "0.5.1",
+        "crodas/Haanga": "v1.0.5",
+        "christianklisch/phpcache": "0.1.2"
+    }
+}

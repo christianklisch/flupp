@@ -1,0 +1,6 @@
+website: flupp cms
+author: christian klisch
+theme: 
+	name : default
+	header : header.html
+	footer: footer.html
