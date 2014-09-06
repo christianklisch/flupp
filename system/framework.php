@@ -160,6 +160,8 @@ class Framework
         $moduleString = $this->findModuleInPath($path);
         $targetSite = $this->findSiteInPath($pathstring);
         
+        $scriptUrl = str_replace(rtrim($moduleString, '/'), '', $tmpUrl);
+        
         $values = array();
         $values['main'] = 'NOT FOUND';
         
@@ -211,6 +213,17 @@ class Framework
         
         $values['footer'] = $footer;
         $values['header'] = $header;
+        
+        // css & meta
+        $meta = '';
+        $files = glob(THEMES . $this->config['system']['theme']['name'] . '/*.css');
+     
+        foreach ($files as $filename) {
+            if (is_file($filename)) {
+                $meta .= '<link rel="stylesheet" href="' . $scriptUrl . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '">';
+            }
+        }
+        $values['meta'] = $meta;
         
         $template = \Haanga::compile(file_get_contents(THEMES . $this->config['system']['theme']['name'] . '/' . $module->getLayout()));
         return $template($values);

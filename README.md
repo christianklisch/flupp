@@ -44,6 +44,7 @@ Using:
 * [mustangostang/spyc]
 * [crodas/Haanga]
 * [christianklisch/phpcache]
+* [uikit/uikit]
 
 ## Contributors
 
