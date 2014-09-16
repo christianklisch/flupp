@@ -139,10 +139,16 @@ class Framework
         ));
         
         $key = 'configuration';
-        $this->config = $cache->cacheVal($this->configReader(), $key);
+        if (is_writable(CACHE . $key))
+            $this->config = $cache->cacheVal($this->configReader(), $key);
+        else
+            $this->config = $this->configReader();
         
         $key = 'content';
-        $this->content = $cache->cacheVal($this->readContents(), $key);
+        if (is_writable(CACHE . $key))
+            $this->content = $cache->cacheVal($this->readContents(), $key);
+        else
+            $this->content = $this->readContents();
     }
 
     public function perform($path)
@@ -217,7 +223,7 @@ class Framework
         // css & meta
         $meta = '';
         $files = glob(THEMES . $this->config['system']['theme']['name'] . '/*.css');
-     
+        
         foreach ($files as $filename) {
             if (is_file($filename)) {
                 $meta .= '<link rel="stylesheet" href="' . $scriptUrl . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '">';

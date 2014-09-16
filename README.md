@@ -1,6 +1,6 @@
-# Flupp CMS v.0.0.1
+# Flupp CMS framework v.0.0.1
 
-Flupp CMS is a lightning-fast flat file CMS
+Flupp CMS is a lightning-fast flat file CMS framework
 
 Features:
 * Fast because of caching
