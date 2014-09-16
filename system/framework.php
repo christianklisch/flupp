@@ -242,7 +242,7 @@ class Framework
         
         $moduleString = $this->findModuleInPath(explode('/', $pathstring));
         $targetSite = $this->findSiteInPath($pathstring);
-        
+//print_r($moduleString);        
         $values = array();
         $module = $this->modules[$moduleString];
         
@@ -317,16 +317,17 @@ class Framework
         $actPath = '';
         $selectedModule = '';
         $i = 1;
-        
+
         foreach ($path as $file) {
+            
             $directThis = false;
             $actPath .= $file;
-            
+
             if (file_exists(CONTENT . $actPath . EXTENSION) && is_file(CONTENT . $actPath . EXTENSION)) {
                 $directThis = true;
             }
             
-            if (file_exists(CONTENT . $actPath) && is_dir(CONTENT . $actPath) && $i != sizeof($path)) {
+            else if (file_exists(CONTENT . $actPath) && is_dir(CONTENT . $actPath) && $i != sizeof($path)) {
                 $actPath .= '/';
                 
                 if ($directThis)
@@ -334,9 +335,8 @@ class Framework
                 else
                     $selectedModule .= '/' . $file;
             }
-            $i ++;
+            $i++;
         }
-        
         return $selectedModule . '/';
     }
 

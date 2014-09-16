@@ -1,6 +1,5 @@
-title: Info
-meta_description: Informatios for meta
+title: About flupp CMS framework
+meta_description: Information about flupp CMS framework
 
 ### Info
 
-This is the information site
