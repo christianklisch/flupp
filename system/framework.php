@@ -164,20 +164,20 @@ class Framework
         
         $pathstring = implode($path, '/');
         $moduleString = $this->findModuleInPath($path);
+        $contentString = $this->findContentInPath($path);
         $targetSite = $this->findSiteInPath($pathstring);
         
         $scriptUrl = str_replace(rtrim($moduleString, '/'), '', $tmpUrl);
         
         $values = array();
         $values['main'] = 'NOT FOUND';
-        
         $module = $this->modules[$moduleString];
         
         if ($module != null) {
             $moduleHtml = "";
             
-            if (! array_key_exists($targetSite, $this->content[$moduleString]) && $targetSite == 'index') {
-                $moduleHtml = $this->modules[$moduleString]->output('index', $this->content[$moduleString]);
+            if (! array_key_exists($targetSite, $this->content[$contentString]) && $targetSite == 'index') {
+                $moduleHtml = $this->modules[$moduleString]->output('index', $this->content[$contentString], $tmpUrl);
                 $values['main'] = $moduleHtml;
                 
                 foreach ($this->modules[$moduleString]->getFields() as $field) {
@@ -191,8 +191,8 @@ class Framework
                     $subs[$sub] = $this->performRecursive($moduleString . $subview, $tmpUrl);
                 }
                 
-                $moduleHtml = $this->modules[$moduleString]->output('view', $this->content[$moduleString][$targetSite]);
-                
+                $moduleHtml = $this->modules[$moduleString]->output('view', $this->content[$contentString][$targetSite], $tmpUrl);
+       
                 // mix subs
                 
                 $templatesub = \Haanga::compile($moduleHtml);
@@ -201,8 +201,8 @@ class Framework
                 $values['main'] = $moduleHtml;
                 
                 foreach ($this->modules[$moduleString]->getFields() as $field) {
-                    if (array_key_exists($field, $this->content[$moduleString][$targetSite]) && $field != 'content')
-                        $values[$field] = $this->content[$moduleString][$targetSite][$field];
+                    if (array_key_exists($field, $this->content[$contentString][$targetSite]) && $field != 'content')
+                        $values[$field] = $this->content[$contentString][$targetSite][$field];
                 }
             }
         }
@@ -226,7 +226,7 @@ class Framework
         
         foreach ($files as $filename) {
             if (is_file($filename)) {
-                $meta .= '<link rel="stylesheet" href="' . $scriptUrl . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '">';
+                $meta .= '<link rel="stylesheet" href="' . $this->config['system']['url'] . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '">';
             }
         }
         $values['meta'] = $meta;
@@ -237,21 +237,22 @@ class Framework
 
     private function performRecursive($pathstring, $url)
     {
+        // echo "performRecursive($pathstring, $url)<br/>\n";
         $pathstring = trim($pathstring, '/');
         $html = "";
         
         $moduleString = $this->findModuleInPath(explode('/', $pathstring));
         $targetSite = $this->findSiteInPath($pathstring);
-//print_r($moduleString);        
+        
         $values = array();
         $module = $this->modules[$moduleString];
         
-        $url .= ltrim($moduleString, '/');
+        $url .= ltrim($moduleString, '');
         
         if ($module != null) {
             $moduleHtml = "NOT FOUND";
-            
             if (! array_key_exists($targetSite, $this->content[$moduleString]) && $targetSite == 'index') {
+                
                 $moduleHtml = $this->modules[$moduleString]->output('index', $this->content[$moduleString], $url);
                 
                 foreach ($this->modules[$moduleString]->getFields() as $field) {
@@ -271,7 +272,6 @@ class Framework
             $template = \Haanga::compile($moduleHtml);
             $html = $template($values);
         }
-        
         return $html;
     }
 
@@ -317,17 +317,19 @@ class Framework
         $actPath = '';
         $selectedModule = '';
         $i = 1;
-
+        $lastPath = '';
+        
         foreach ($path as $file) {
             
             $directThis = false;
             $actPath .= $file;
-
-            if (file_exists(CONTENT . $actPath . EXTENSION) && is_file(CONTENT . $actPath . EXTENSION)) {
-                $directThis = true;
-            }
+            $evtlSite = $actPath;
             
-            else if (file_exists(CONTENT . $actPath) && is_dir(CONTENT . $actPath) && $i != sizeof($path)) {
+            if (array_key_exists('/' . $actPath . '/', $this->content) && $i != sizeof($path)) {
+                
+                if (array_key_exists('/' . $lastPath . '/this/', $this->modules))
+                    $directThis = true;
+                
                 $actPath .= '/';
                 
                 if ($directThis)
@@ -335,8 +337,42 @@ class Framework
                 else
                     $selectedModule .= '/' . $file;
             }
-            $i++;
+            $i ++;
+            $lastPath = $evtlSite;
         }
+        
+        return $selectedModule . '/';
+    }
+
+    private function findContentInPath($path)
+    {
+        $actPath = '';
+        $selectedModule = '';
+        $i = 1;
+        $lastPath = '';
+        
+        foreach ($path as $file) {
+            
+            $directThis = false;
+            $actPath .= $file;
+            $evtlSite = $actPath;
+            
+            if (array_key_exists('/' . $actPath . '/', $this->content) && $i != sizeof($path)) {
+                
+                // if (array_key_exists('/' . $lastPath . '/this/', $this->modules))
+                // $directThis = true;
+                
+                $actPath .= '/';
+                
+                if ($directThis)
+                    $selectedModule .= '/this';
+                else
+                    $selectedModule .= '/' . $file;
+            }
+            $i ++;
+            $lastPath = $evtlSite;
+        }
+        
         return $selectedModule . '/';
     }
 

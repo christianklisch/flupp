@@ -205,7 +205,7 @@ abstract class AbstractModule
         $this->layout = $layout;
     }
 
-    public function output($view, $contents = array(), $url = '')
+    public function output($view, $contents = array(), $url )
     {
         $this->parsedown = new \Parsedown();
         
@@ -246,6 +246,7 @@ abstract class AbstractModule
 
     protected function defaultoutput($view, $contents, $url)
     {
+        echo "URL $url";
         $rawContent = $contents['content'];
         $htmlContent = $this->parsedown->text($rawContent);
         
