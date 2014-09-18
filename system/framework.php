@@ -171,7 +171,10 @@ class Framework
         
         $values = array();
         $values['main'] = 'NOT FOUND';
+        $values['navigation'] = null;
         $module = $this->modules[$moduleString];
+        
+        // print_r($this->config);
         
         if ($module != null) {
             $moduleHtml = "";
@@ -179,6 +182,9 @@ class Framework
             if (! array_key_exists($targetSite, $this->content[$contentString]) && $targetSite == 'index') {
                 $moduleHtml = $this->modules[$moduleString]->output('index', $this->content[$contentString], $tmpUrl);
                 $values['main'] = $moduleHtml;
+                
+                if (array_key_exists('navigation', $this->modules[$moduleString]) && $values['navigation'] == null)
+                    $values['navigation'] = $this->modules[$moduleString]['navigation'];
                 
                 foreach ($this->modules[$moduleString]->getFields() as $field) {
                     if ($field != 'content')
@@ -192,7 +198,7 @@ class Framework
                 }
                 
                 $moduleHtml = $this->modules[$moduleString]->output('view', $this->content[$contentString][$targetSite], $tmpUrl);
-       
+                
                 // mix subs
                 
                 $templatesub = \Haanga::compile($moduleHtml);
@@ -206,6 +212,22 @@ class Framework
                 }
             }
         }
+        
+        // if navigation not found
+        if ($values['navigation'] == null) {
+            
+            $navModPath = $moduleString;
+            while (stripos($navModPath, '/') >= 0 && sizeof($navModPath) > 0 && $navModPath != '') {
+                
+                if ($navModPath != null && array_key_exists($navModPath, $this->modules) && $this->modules[$navModPath] != null && $this->modules[$navModPath]->getNavigation() != null && $values['navigation'] == null)
+                    $values['navigation'] = $this->modules[$navModPath]->getNavigation();
+                
+                $navModPath = rtrim($navModPath, '/');
+                $navModPath = substr($navModPath, 0, strrpos($navModPath, '/'));
+            }
+        }
+        if ($values['navigation'] != null)
+            $values['navigation'] = $this->addNavigationUrlPrefix($values['navigation'], $this->config['system']['url']);
         
         // select layout
         
@@ -223,12 +245,18 @@ class Framework
         // css & meta
         $meta = '';
         $files = glob(THEMES . $this->config['system']['theme']['name'] . '/*.css');
-        
         foreach ($files as $filename) {
             if (is_file($filename)) {
                 $meta .= '<link rel="stylesheet" href="' . $this->config['system']['url'] . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '">';
             }
         }
+        $files = glob(THEMES . $this->config['system']['theme']['name'] . '/*.js');
+        foreach ($files as $filename) {
+            if (is_file($filename)) {
+                $meta .= '<script  href="' . $this->config['system']['url'] . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '"></script>';
+            }
+        }
+        
         $values['meta'] = $meta;
         
         $template = \Haanga::compile(file_get_contents(THEMES . $this->config['system']['theme']['name'] . '/' . $module->getLayout()));
@@ -397,6 +425,13 @@ class Framework
             return $mod1;
         } else
             return $pathstring;
+    }
+
+    private function addNavigationUrlPrefix($navigation, $prefix)
+    {
+        foreach ($navigation as $key => $val)
+            $navigation[$key] = $prefix.$val;
+        return $navigation;
     }
 }
 

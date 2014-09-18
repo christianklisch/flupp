@@ -1,10 +1,10 @@
 classname: Base
 name: Base CMS
 navigation:
-  home
-  impress
-  info
-  contact
+  Home    : /
+  Info    : /info
+  FAQ     : /faq
+  Impress : /impress
 subviews:
   news : news/index
   faq  : faq/index  

@@ -246,7 +246,6 @@ abstract class AbstractModule
 
     protected function defaultoutput($view, $contents, $url)
     {
-        echo "URL $url";
         $rawContent = $contents['content'];
         $htmlContent = $this->parsedown->text($rawContent);
         

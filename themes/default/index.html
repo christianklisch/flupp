@@ -1,14 +1,43 @@
-<!DOCTYPE HTML>     
-<html lang="de">   
-    <head>   
-        <title>{{title}}</title>
-        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-        <meta name="description" content="{{meta_description}}">
-        {{ meta | safe }}
-    </head>
-    <body>
-    	<div class="header">{{ header | safe }}</div>
-    		{{ main | safe }}
-    	<div class="footer">{{ footer | safe }}</div>
-  	</body>
+<!DOCTYPE HTML>
+<html lang="de">
+<head>
+<title>{{title}}</title>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<meta name="description" content="{{meta_description}}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet"
+	href="//cdnjs.cloudflare.com/ajax/libs/uikit/2.10.0/css/uikit.gradient.min.css">
+
+{{ meta | safe }}
+</head>
+<body>
+
+	<div
+		class="uk-container uk-container-center uk-margin-top uk-margin-large-bottom">
+		{{ header | safe }}
+		<nav class="uk-navbar uk-margin-large-bottom">
+			<a class="uk-navbar-brand uk-hidden-small"
+				href="layouts_frontpage.html">FLUPP</a>
+			<ul class="uk-navbar-nav uk-hidden-small">
+				{% for title , url in navigation %}
+					<li><a href="{{ url }}">{{ title }}</a></li>
+				{% endfor %}
+				
+			</ul>
+			<a href="#offcanvas" class="uk-navbar-toggle uk-visible-small"
+				data-uk-offcanvas></a>
+			<div class="uk-navbar-brand uk-navbar-center uk-visible-small">Brand</div>
+		</nav>
+
+		<div class="uk-grid" data-uk-grid-margin>
+			<div class="uk-width-medium-1-1">{{ main | safe }}</div>
+		</div>
+
+
+		<div class="uk-panel uk-panel-box ">{{ footer | safe }}</div>
+	</div>
+
+
+</body>
 </html>
