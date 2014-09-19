@@ -67,7 +67,7 @@ class Framework
     {
         $config['system'] = spyc_load_file(CONFIG);
         $config['modules'] = $this->readModules();
-        
+       
         return $config;
     }
 
@@ -172,9 +172,8 @@ class Framework
         $values = array();
         $values['main'] = 'NOT FOUND';
         $values['navigation'] = null;
-        $module = $this->modules[$moduleString];
         
-        // print_r($this->config);
+        $module = $this->modules[$moduleString];
         
         if ($module != null) {
             $moduleHtml = "";
@@ -256,7 +255,7 @@ class Framework
                 $meta .= '<script  href="' . $this->config['system']['url'] . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '"></script>';
             }
         }
-        
+
         $values['meta'] = $meta;
         
         $template = \Haanga::compile(file_get_contents(THEMES . $this->config['system']['theme']['name'] . '/' . $module->getLayout()));
