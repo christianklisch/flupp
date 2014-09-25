@@ -20,8 +20,8 @@
 			<div class="uk-navbar-brand uk-hidden-small"
 				>FLUPP</div>
 			<ul class="uk-navbar-nav uk-hidden-small">
-				{% for title , url in navigation %}
-					<li><a href="{{ url }}">{{ title }}</a></li>
+				{% for titlen , url in navigation %}
+					<li><a href="{{ url }}">{{ titlen }}</a></li>
 				{% endfor %}
 				
 			</ul>
@@ -30,8 +30,18 @@
 			<div class="uk-navbar-brand uk-navbar-center uk-visible-small">Brand</div>
 		</nav>
 
+
+
 		<div class="uk-grid" data-uk-grid-margin>
-			<div class="uk-width-medium-1-1">{{ main | safe }}</div>
+			<div class="uk-width-medium-1-1">
+				<ul class="uk-breadcrumb">
+				{% for titlen , url in breadcrumb %}
+					<li><a href="{{ url }}">{{ titlen }}</a></li>
+				{% endfor %}				
+				    <li class="uk-active"><span>{{ title }}</span></li>
+				</ul>
+				{{ main | safe }}
+			</div>
 		</div>
 
 

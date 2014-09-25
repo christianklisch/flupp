@@ -228,7 +228,7 @@ abstract class AbstractModule
         $values = array();
         
         foreach ($contents as $urlk => $content) {
-            
+            echo  $url .'+'. $urlk . '<br/>';
             $content['url'] = $url . $urlk;
             $preview[] = $this->outputpreview($content, $url);
         }

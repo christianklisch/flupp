@@ -67,7 +67,7 @@ class Framework
     {
         $config['system'] = spyc_load_file(CONFIG);
         $config['modules'] = $this->readModules();
-       
+        
         return $config;
     }
 
@@ -172,6 +172,7 @@ class Framework
         $values = array();
         $values['main'] = 'NOT FOUND';
         $values['navigation'] = null;
+        $values['breadcrumb'] = null;
         
         $module = $this->modules[$moduleString];
         
@@ -220,6 +221,7 @@ class Framework
                 
                 if ($navModPath != null && array_key_exists($navModPath, $this->modules) && $this->modules[$navModPath] != null && $this->modules[$navModPath]->getNavigation() != null && $values['navigation'] == null)
                     $values['navigation'] = $this->modules[$navModPath]->getNavigation();
+                    // getNavigation correct?
                 
                 $navModPath = rtrim($navModPath, '/');
                 $navModPath = substr($navModPath, 0, strrpos($navModPath, '/'));
@@ -227,7 +229,38 @@ class Framework
         }
         if ($values['navigation'] != null)
             $values['navigation'] = $this->addNavigationUrlPrefix($values['navigation'], $this->config['system']['url']);
-        
+            
+            // breadcrumb
+        if ($values['breadcrumb'] == null) {
+            
+            $navModPath = $moduleString;
+            $navUrlPath = '/' . trim($tmpUrl, $this->config['system']['url']);
+            while (stripos($navModPath, '/') >= 0 && sizeof($navModPath) > 0 && $navModPath != '') {
+                
+                if (substr("$navModPath", - 1) != '/')
+                    $navModPath .= '/';
+                if (substr("$navUrlPath", - 1) != '/')
+                    $navUrlPath .= '/';
+                
+                if (substr($navModPath, - 6) == '/this/') {
+                    $tp = rtrim($navUrlPath, '/');
+                    $tmod = $this->findModuleInPath(explode('/', $tp));
+                    $tsite = $this->findSiteInPath($tp);
+                    
+                    $values['breadcrumb'][ltrim($this->content[$tmod][$tsite]['title'], '/')] = $tp;
+                } else
+                    $values['breadcrumb'][$this->modules[$navModPath]->getName()] = $navUrlPath;
+                
+                $navModPath = rtrim($navModPath, '/');
+                $navModPath = substr($navModPath, 0, strrpos($navModPath, '/'));
+                
+                $navUrlPath = rtrim($navUrlPath, '/');
+                $navUrlPath = substr($navUrlPath, 0, strrpos($navUrlPath, '/'));
+            }
+            $values['breadcrumb'][$this->modules['/']->getName()] = '/';
+            $values['breadcrumb'] = array_reverse($values['breadcrumb']);
+            $values['breadcrumb'] = $this->addNavigationUrlPrefix($values['breadcrumb'], $this->config['system']['url']);
+        }
         // select layout
         
         $footer = file_get_contents(THEMES . $this->config['system']['theme']['name'] . '/footer.html');
@@ -255,7 +288,7 @@ class Framework
                 $meta .= '<script  href="' . $this->config['system']['url'] . '/' . basename(THEMES) . '/' . $this->config['system']['theme']['name'] . '/' . basename($filename) . '"></script>';
             }
         }
-
+        
         $values['meta'] = $meta;
         
         $template = \Haanga::compile(file_get_contents(THEMES . $this->config['system']['theme']['name'] . '/' . $module->getLayout()));
@@ -275,6 +308,7 @@ class Framework
         $module = $this->modules[$moduleString];
         
         $url .= ltrim($moduleString, '');
+        $url = str_replace('//', '/', $url);
         
         if ($module != null) {
             $moduleHtml = "NOT FOUND";
@@ -341,6 +375,8 @@ class Framework
 
     private function findModuleInPath($path)
     {
+        // echo "findModuleInPath()<br/>\n";
+        // print_r($path);
         $actPath = '';
         $selectedModule = '';
         $i = 1;
@@ -410,11 +446,13 @@ class Framework
 
     private function findSiteInPath($pathstring)
     {
+        // echo "findSiteInPath($pathstring)<br/>\n";
         if ($pathstring == '/' || $pathstring == '')
             return 'index';
         
-        if (strpos($pathstring, '/') > 0) {
+        if (strrpos($pathstring, '/') > 0) {
             $mod1 = strrchr($pathstring, '/');
+            
             if (substr($mod1, 0, 1) == '/')
                 $mod1 = substr($mod1, 1);
             
@@ -429,7 +467,7 @@ class Framework
     private function addNavigationUrlPrefix($navigation, $prefix)
     {
         foreach ($navigation as $key => $val)
-            $navigation[$key] = $prefix.$val;
+            $navigation[$key] = $prefix . $val;
         return $navigation;
     }
 }
