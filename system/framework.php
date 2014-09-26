@@ -167,6 +167,12 @@ class Framework
         $contentString = $this->findContentInPath($path);
         $targetSite = $this->findSiteInPath($pathstring);
         
+        $siteNo = '';
+        if (is_numeric($targetSite)) {
+            $siteNo = $targetSite;
+            $targetSite = 'index';
+        }     
+        
         $scriptUrl = str_replace(rtrim($moduleString, '/'), '', $tmpUrl);
         
         $values = array();
@@ -181,7 +187,7 @@ class Framework
             $moduleHtml = "";
             
             if (! array_key_exists($targetSite, $this->content[$contentString]) && $targetSite == 'index') {
-                $moduleHtml = $module->output('index', $this->content[$contentString], '', $tmpUrl);
+                $moduleHtml = $module->output('index', $this->content[$contentString], $siteNo, $tmpUrl);
                 $values['main'] = $moduleHtml;
                 
                 if ($module->getNavigation() != null && sizeof($module->getNavigation()) > 0 && $values['navigation'] == null)

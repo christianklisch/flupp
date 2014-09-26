@@ -34,6 +34,12 @@ abstract class AbstractModule
 
     protected $layout;
 
+    protected $pagesPerSite;
+
+    protected $orderBy;
+
+    protected $order;
+
     /**
      * Constructor
      *
@@ -66,7 +72,10 @@ abstract class AbstractModule
         $this->subviews = array();
         $this->isCached = true;
         $this->layout = 'index.html';
-        
+        $this->pagesPerSite = 5;
+        $this->orderBy = 'name'; // name, title, field...
+        $this->order = 'ASC'; // ASC, DESC
+                              
         // merge config
         if (array_key_exists('functions', $settings))
             $this->functions = array_merge($this->functions, $settings['functions']);
@@ -93,6 +102,8 @@ abstract class AbstractModule
             $this->path = $settings['path'];
         if (array_key_exists('layout', $settings))
             $this->layout = $settings['layout'];
+        if (array_key_exists('pagesPerSite', $settings))
+            $this->pagesPerSite = $settings['pagesPerSite'];
         
         if ($path != '') {
             $newViews = array();
@@ -220,6 +231,36 @@ abstract class AbstractModule
         $this->layout = $layout;
     }
 
+    public function getPagesPerSite()
+    {
+        return $this->pagesPerSite;
+    }
+
+    public function setPagesPerSite($pagesPerSite)
+    {
+        $this->pagesPerSite = $pagesPerSite;
+    }
+
+    public function getOrderBy()
+    {
+        return $this->orderBy;
+    }
+
+    public function setOrderBy($orderBy)
+    {
+        $this->orderBy = $orderBy;
+    }
+
+    public function getOrder()
+    {
+        return $this->order;
+    }
+
+    public function setOrder($order)
+    {
+        $this->order = $order;
+    }
+
     public function output($view, $contents = array(), $targetSite, $url)
     {
         $this->parsedown = new \Parsedown();
@@ -242,7 +283,25 @@ abstract class AbstractModule
         $preview = array();
         $values = array();
         
-        foreach ($contents as $urlk => $content) {
+        $partContents = $contents;
+        
+        if ($targetSite == '')
+            $targetSite = 0;
+        
+        if (is_numeric($targetSite)) {
+            $partContents = array_slice($contents, $targetSite * $this->pagesPerSite, $this->pagesPerSite);
+     
+            $values['pagination_previous_page'] = '';
+            $values['pagination_next_page'] = '';
+            
+            if ($targetSite > 0)
+                $values['pagination_previous_page'] = $targetSite - 1;
+            
+            if ($targetSite * $this->pagesPerSite + 5 < sizeof($contents))
+                $values['pagination_next_page'] = $targetSite + 1;
+        }
+        
+        foreach ($partContents as $urlk => $content) {
             $contents[$urlk]['url'] = $url . $urlk;
             $preview[] = $this->outputpreview($contents, $urlk, $url);
         }

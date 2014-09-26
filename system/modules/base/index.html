@@ -3,4 +3,14 @@
 	{% for preview in previews %}
 		{{ preview | safe }}
 	{% endfor %}
+
+	{% if pagination_previous_page != ''  %}
+    <a href="./{{ pagination_previous_page }}">Previous</a>
+	{% endif %}
+	{% if pagination_previous_page == '0' %}
+    <a href="./{{ pagination_previous_page }}">Previous</a>
+	{% endif %}	
+	{% if pagination_next_page != '' %}
+    <a href="./{{ pagination_next_page }}">Next</a>
+	{% endif %}	
 </div>
