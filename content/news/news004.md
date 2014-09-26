@@ -1,4 +1,4 @@
-title: News version 0.0.2
+title: News version 0.0.4
 meta_description: Whats new in 0.0.2
 
 ### News to version 0.0.2

@@ -73,7 +73,7 @@ abstract class AbstractModule
         $this->isCached = true;
         $this->layout = 'index.html';
         $this->pagesPerSite = 5;
-        $this->orderBy = 'name'; // name, title, field...
+        $this->orderBy = 'name'; // name, (fields: title, ..)
         $this->order = 'ASC'; // ASC, DESC
                               
         // merge config
@@ -289,8 +289,11 @@ abstract class AbstractModule
             $targetSite = 0;
         
         if (is_numeric($targetSite)) {
-            $partContents = array_slice($contents, $targetSite * $this->pagesPerSite, $this->pagesPerSite);
-     
+            
+            $orderdContents = $this->sortContent($contents, $this->orderBy, $this->order);
+            
+            $partContents = array_slice($orderdContents, $targetSite * $this->pagesPerSite, $this->pagesPerSite);
+            
             $values['pagination_previous_page'] = '';
             $values['pagination_next_page'] = '';
             
@@ -335,6 +338,37 @@ abstract class AbstractModule
         
         $template = \Haanga::compile(file_get_contents($this->views[$view]));
         return $template($values);
+    }
+
+    protected function sortContent($contents, $orderBy, $order)
+    {
+        echo "sortContent( $orderBy, $order)";
+        $returnarray = $contents;
+        print_r($contents);
+        
+        if ($orderBy == 'name') {
+            if ($order == 'ASC')
+                ksort($returnarray);
+            else 
+                if ($order == 'DESC')
+                    krsort($returnarray);
+        } else {
+            
+            $orderData = array();
+            foreach ($returnarray as $key => $row) {
+                if (! array_key_exists($orderBy, $row))
+                    break;
+                $orderData[$key] = $row[$orderBy];
+            }
+            
+            if ($order == 'ASC')
+                array_multisort($orderData, SORT_ASC, $returnarray);
+            else 
+                if ($order == 'DESC')
+                    array_multisort($orderData, SORT_DESC, $returnarray);
+        }
+        
+        return $returnarray;
     }
 }
 
