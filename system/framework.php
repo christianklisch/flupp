@@ -158,7 +158,7 @@ class Framework
         if ($_SERVER['REQUEST_URI'][strlen($_SERVER['REQUEST_URI']) - 1] == '/')
             $tmpUrl = $_SERVER['REQUEST_URI'];
         else
-            $tmpUrl = substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], '/'));
+            $tmpUrl = substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], '/') + 1);
         
         $html = "";
         
@@ -171,7 +171,7 @@ class Framework
         if (is_numeric($targetSite)) {
             $siteNo = $targetSite;
             $targetSite = 'index';
-        }     
+        }
         
         $scriptUrl = str_replace(rtrim($moduleString, '/'), '', $tmpUrl);
         

@@ -289,9 +289,7 @@ abstract class AbstractModule
             $targetSite = 0;
         
         if (is_numeric($targetSite)) {
-            
             $orderdContents = $this->sortContent($contents, $this->orderBy, $this->order);
-            
             $partContents = array_slice($orderdContents, $targetSite * $this->pagesPerSite, $this->pagesPerSite);
             
             $values['pagination_previous_page'] = '';
@@ -342,9 +340,7 @@ abstract class AbstractModule
 
     protected function sortContent($contents, $orderBy, $order)
     {
-        echo "sortContent( $orderBy, $order)";
         $returnarray = $contents;
-        print_r($contents);
         
         if ($orderBy == 'name') {
             if ($order == 'ASC')
