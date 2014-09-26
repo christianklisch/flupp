@@ -175,18 +175,19 @@ class Framework
         $values['breadcrumb'] = null;
         
         $module = $this->modules[$moduleString];
+        $module->setSettings($this->config['modules'][$moduleString], $moduleString);
         
         if ($module != null) {
             $moduleHtml = "";
             
             if (! array_key_exists($targetSite, $this->content[$contentString]) && $targetSite == 'index') {
-                $moduleHtml = $this->modules[$moduleString]->output('index', $this->content[$contentString], $tmpUrl);
+                $moduleHtml = $module->output('index', $this->content[$contentString], '', $tmpUrl);
                 $values['main'] = $moduleHtml;
                 
-                if (array_key_exists('navigation', $this->modules[$moduleString]) && $values['navigation'] == null)
-                    $values['navigation'] = $this->modules[$moduleString]['navigation'];
+                if ($module->getNavigation() != null && sizeof($module->getNavigation()) > 0 && $values['navigation'] == null)
+                    $values['navigation'] = $module->getNavigation();
                 
-                foreach ($this->modules[$moduleString]->getFields() as $field) {
+                foreach ($module->getFields() as $field) {
                     if ($field != 'content')
                         $values[$field] = '';
                 }
@@ -197,7 +198,7 @@ class Framework
                     $subs[$sub] = $this->performRecursive($moduleString . $subview, $tmpUrl);
                 }
                 
-                $moduleHtml = $this->modules[$moduleString]->output('view', $this->content[$contentString][$targetSite], $tmpUrl);
+                $moduleHtml = $module->output('view', $this->content[$contentString], $targetSite, $tmpUrl);
                 
                 // mix subs
                 
@@ -206,7 +207,7 @@ class Framework
                 
                 $values['main'] = $moduleHtml;
                 
-                foreach ($this->modules[$moduleString]->getFields() as $field) {
+                foreach ($module->getFields() as $field) {
                     if (array_key_exists($field, $this->content[$contentString][$targetSite]) && $field != 'content')
                         $values[$field] = $this->content[$contentString][$targetSite][$field];
                 }
@@ -215,18 +216,24 @@ class Framework
         
         // if navigation not found
         if ($values['navigation'] == null) {
-            
             $navModPath = $moduleString;
             while (stripos($navModPath, '/') >= 0 && sizeof($navModPath) > 0 && $navModPath != '') {
                 
+                if (substr("$navModPath", - 1) != '/')
+                    $navModPath .= '/';
+                
                 if ($navModPath != null && array_key_exists($navModPath, $this->modules) && $this->modules[$navModPath] != null && $this->modules[$navModPath]->getNavigation() != null && $values['navigation'] == null)
                     $values['navigation'] = $this->modules[$navModPath]->getNavigation();
-                    // getNavigation correct?
                 
                 $navModPath = rtrim($navModPath, '/');
                 $navModPath = substr($navModPath, 0, strrpos($navModPath, '/'));
             }
         }
+        if ($values['navigation'] == null) {
+            if (array_key_exists('/', $this->modules) && $this->modules['/'] != null && $this->modules['/']->getNavigation() != null)
+                $values['navigation'] = $this->modules['/']->getNavigation();
+        }
+        
         if ($values['navigation'] != null)
             $values['navigation'] = $this->addNavigationUrlPrefix($values['navigation'], $this->config['system']['url']);
             
@@ -261,8 +268,8 @@ class Framework
             $values['breadcrumb'] = array_reverse($values['breadcrumb']);
             $values['breadcrumb'] = $this->addNavigationUrlPrefix($values['breadcrumb'], $this->config['system']['url']);
         }
-        // select layout
         
+        // select layout
         $footer = file_get_contents(THEMES . $this->config['system']['theme']['name'] . '/footer.html');
         $header = file_get_contents(THEMES . $this->config['system']['theme']['name'] . '/header.html');
         
@@ -314,17 +321,17 @@ class Framework
             $moduleHtml = "NOT FOUND";
             if (! array_key_exists($targetSite, $this->content[$moduleString]) && $targetSite == 'index') {
                 
-                $moduleHtml = $this->modules[$moduleString]->output('index', $this->content[$moduleString], $url);
+                $moduleHtml = $module->output('index', $this->content[$moduleString], '', $url);
                 
-                foreach ($this->modules[$moduleString]->getFields() as $field) {
+                foreach ($module->getFields() as $field) {
                     if ($field != 'content')
                         $values[$field] = '';
                 }
             } else {
                 
-                $moduleHtml = $this->modules[$moduleString]->output('view', $this->content[$moduleString][$targetSite], $url);
+                $moduleHtml = $module->output('view', $this->content[$moduleString], $targetSite, $url);
                 
-                foreach ($this->modules[$moduleString]->getFields() as $field) {
+                foreach ($module->getFields() as $field) {
                     if (array_key_exists($field, $this->content[$moduleString][$targetSite]) && $field != 'content')
                         $values[$field] = $this->content[$moduleString][$targetSite][$field];
                 }

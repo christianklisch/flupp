@@ -36,7 +36,7 @@ abstract class AbstractModule
 
     /**
      * Constructor
-     * 
+     *
      * @param array $settings
      *            Associative array of settings
      */
@@ -45,7 +45,7 @@ abstract class AbstractModule
         $this->setSettings($settings);
     }
 
-    public function setSettings($settings = array())
+    public function setSettings($settings = array(), $path = '')
     {
         $this->classname = 'AbstractModule';
         $this->name = 'Abstract Module';
@@ -93,6 +93,21 @@ abstract class AbstractModule
             $this->path = $settings['path'];
         if (array_key_exists('layout', $settings))
             $this->layout = $settings['layout'];
+        
+        if ($path != '') {
+            $newViews = array();
+            
+            foreach ($this->views as $key2 => $view) {
+                if (is_file(str_replace('//', '/', MODULES . $path . $view))) {
+                    $newViews[$key2] = str_replace('//', '/', MODULES . $path . $view);
+                } else 
+                    if (is_file(str_replace('//', '/', SYSTEM . 'modules/' . lcfirst(get_class($this)) . '/' . $view))) {
+                        $newViews[$key2] = str_replace('//', '/', SYSTEM . 'modules/' . lcfirst(get_class($this)) . '/' . $view);
+                    }
+            }
+            
+            $this->views = $newViews;
+        }
     }
 
     public function getName()
@@ -205,7 +220,7 @@ abstract class AbstractModule
         $this->layout = $layout;
     }
 
-    public function output($view, $contents = array(), $url )
+    public function output($view, $contents = array(), $targetSite, $url)
     {
         $this->parsedown = new \Parsedown();
         
@@ -213,24 +228,23 @@ abstract class AbstractModule
         if (array_key_exists($view, $this->views))
             $functionname = 'output' . $view;
         
-        return $this->$functionname($contents, $url);
+        return $this->$functionname($contents, $targetSite, $url);
     }
 
-    protected function outputview($contents, $url)
+    protected function outputview($contents, $targetSite, $url)
     {
-        return $this->defaultoutput('view', $contents, $url);
+        return $this->defaultoutput('view', $contents, $targetSite, $url);
     }
 
-    protected function outputindex($contents, $url)
+    protected function outputindex($contents, $targetSite, $url)
     {
         $html = "";
         $preview = array();
         $values = array();
         
         foreach ($contents as $urlk => $content) {
-            echo  $url .'+'. $urlk . '<br/>';
-            $content['url'] = $url . $urlk;
-            $preview[] = $this->outputpreview($content, $url);
+            $contents[$urlk]['url'] = $url . $urlk;
+            $preview[] = $this->outputpreview($contents, $urlk, $url);
         }
         
         $values['previews'] = $preview;
@@ -239,26 +253,26 @@ abstract class AbstractModule
         return $template($values);
     }
 
-    protected function outputpreview($contents, $url)
+    protected function outputpreview($contents, $targetSite, $url)
     {
-        return $this->defaultoutput('preview', $contents, $url);
+        return $this->defaultoutput('preview', $contents, $targetSite, $url);
     }
 
-    protected function defaultoutput($view, $contents, $url)
+    protected function defaultoutput($view, $contents, $targetSite, $url)
     {
-        $rawContent = $contents['content'];
+        $rawContent = $contents[$targetSite]['content'];
         $htmlContent = $this->parsedown->text($rawContent);
         
         $values = array(
             'content' => $htmlContent
         );
         foreach ($this->fields as $field) {
-            if (array_key_exists($field, $contents) && $field != 'content')
-                $values[$field] = $contents[$field];
+            if (array_key_exists($field, $contents[$targetSite]) && $field != 'content')
+                $values[$field] = $contents[$targetSite][$field];
         }
         
-        if (array_key_exists('url', $contents))
-            $values['url'] = $contents['url'];
+        if (array_key_exists('url', $contents[$targetSite]))
+            $values['url'] = $contents[$targetSite]['url'];
         
         $template = \Haanga::compile(file_get_contents($this->views[$view]));
         return $template($values);
