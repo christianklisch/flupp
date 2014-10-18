@@ -186,8 +186,35 @@ class Framework
         if ($module != null) {
             $moduleHtml = "";
             
+            // references
+            if ($module != null && $module->getReferences() != null && sizeof($module->getReferences()) > 0 && $targetSite != 'index') {
+                $refs = $module->getReferences();
+                
+                foreach ($refs as $refKey => $refVal) {
+                    
+                    $values[$refKey] = null;
+                    
+                    if (substr($refVal, - 1) != '/')
+                        $refVal .= '/';
+                    
+                    if (array_key_exists($refKey, $this->content[$contentString][$targetSite])) {
+                        $siteReferences = $this->content[$contentString][$targetSite][$refKey];
+                        
+                        if (! is_array($siteReferences))
+                            $siteReferences = explode(" ", $siteReferences);
+                        
+                        foreach ($siteReferences as $siteReference) {
+                            
+                            $values[$refKey][$this->content[$contentString][$targetSite]['title']] = $refVal . $siteReference;
+                        }
+                    }
+                    
+                    $values[$refKey] = $this->addNavigationUrlPrefix($values[$refKey], $this->config['system']['url']);
+                }
+            }
+            
             if (! array_key_exists($targetSite, $this->content[$contentString]) && $targetSite == 'index') {
-                $moduleHtml = $module->output('index', $this->content[$contentString], $siteNo, $tmpUrl);
+                $moduleHtml = $module->output('index', $this->content[$contentString], $siteNo, $tmpUrl, $values);
                 $values['main'] = $moduleHtml;
                 
                 if ($module->getNavigation() != null && sizeof($module->getNavigation()) > 0 && $values['navigation'] == null)
@@ -201,10 +228,10 @@ class Framework
                 // submodules outputs
                 $subs = array();
                 foreach ($module->getSubviews() as $sub => $subview) {
-                    $subs[$sub] = $this->performRecursive($moduleString . $subview, $tmpUrl);
+                    $subs[$sub] = $this->performRecursive($moduleString . $subview, $tmpUrl, $values);
                 }
                 
-                $moduleHtml = $module->output('view', $this->content[$contentString], $targetSite, $tmpUrl);
+                $moduleHtml = $module->output('view', $this->content[$contentString], $targetSite, $tmpUrl, $values);
                 
                 // mix subs
                 
@@ -245,11 +272,11 @@ class Framework
             
             // breadcrumb
         if ($values['breadcrumb'] == null) {
-            
             $navModPath = $moduleString;
-            $navUrlPath = '/' . trim($tmpUrl, $this->config['system']['url']);
+            $navUrlPath = '/' . ltrim(str_replace($this->config['system']['url'], '', $tmpUrl), '/');
+           
             while (stripos($navModPath, '/') >= 0 && sizeof($navModPath) > 0 && $navModPath != '') {
-                
+           
                 if (substr("$navModPath", - 1) != '/')
                     $navModPath .= '/';
                 if (substr("$navUrlPath", - 1) != '/')
@@ -259,7 +286,7 @@ class Framework
                     $tp = rtrim($navUrlPath, '/');
                     $tmod = $this->findModuleInPath(explode('/', $tp));
                     $tsite = $this->findSiteInPath($tp);
-                    
+                 
                     $values['breadcrumb'][ltrim($this->content[$tmod][$tsite]['title'], '/')] = $tp;
                 } else
                     $values['breadcrumb'][$this->modules[$navModPath]->getName()] = $navUrlPath;
@@ -308,7 +335,7 @@ class Framework
         return $template($values);
     }
 
-    private function performRecursive($pathstring, $url)
+    private function performRecursive($pathstring, $url, $values)
     {
         // echo "performRecursive($pathstring, $url)<br/>\n";
         $pathstring = trim($pathstring, '/');
@@ -317,7 +344,9 @@ class Framework
         $moduleString = $this->findModuleInPath(explode('/', $pathstring));
         $targetSite = $this->findSiteInPath($pathstring);
         
-        $values = array();
+        if($values == null)
+            $values = array();
+        
         $module = $this->modules[$moduleString];
         
         $url .= ltrim($moduleString, '');
@@ -327,7 +356,7 @@ class Framework
             $moduleHtml = "NOT FOUND";
             if (! array_key_exists($targetSite, $this->content[$moduleString]) && $targetSite == 'index') {
                 
-                $moduleHtml = $module->output('index', $this->content[$moduleString], '', $url);
+                $moduleHtml = $module->output('index', $this->content[$moduleString], '', $url, $values);
                 
                 foreach ($module->getFields() as $field) {
                     if ($field != 'content')
@@ -335,7 +364,7 @@ class Framework
                 }
             } else {
                 
-                $moduleHtml = $module->output('view', $this->content[$moduleString], $targetSite, $url);
+                $moduleHtml = $module->output('view', $this->content[$moduleString], $targetSite, $url, $values);
                 
                 foreach ($module->getFields() as $field) {
                     if (array_key_exists($field, $this->content[$moduleString][$targetSite]) && $field != 'content')

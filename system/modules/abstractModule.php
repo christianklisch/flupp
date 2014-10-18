@@ -183,7 +183,7 @@ abstract class AbstractModule
 
     public function getReferences()
     {
-        return $this->reference;
+        return $this->references;
     }
 
     public function setReferences($references)
@@ -261,7 +261,7 @@ abstract class AbstractModule
         $this->order = $order;
     }
 
-    public function output($view, $contents = array(), $targetSite, $url)
+    public function output($view, $contents = array(), $targetSite, $url, $values)
     {
         $this->parsedown = new \Parsedown();
         
@@ -269,19 +269,21 @@ abstract class AbstractModule
         if (array_key_exists($view, $this->views))
             $functionname = 'output' . $view;
         
-        return $this->$functionname($contents, $targetSite, $url);
+        return $this->$functionname($contents, $targetSite, $url, $values);
     }
 
-    protected function outputview($contents, $targetSite, $url)
+    protected function outputview($contents, $targetSite, $url, $values)
     {
-        return $this->defaultoutput('view', $contents, $targetSite, $url);
+        return $this->defaultoutput('view', $contents, $targetSite, $url, $values);
     }
 
-    protected function outputindex($contents, $targetSite, $url)
+    protected function outputindex($contents, $targetSite, $url, $values)
     {
         $html = "";
         $preview = array();
-        $values = array();
+        
+        if ($values == null)
+            $values = array();
         
         $partContents = $contents;
         
@@ -304,7 +306,7 @@ abstract class AbstractModule
         
         foreach ($partContents as $urlk => $content) {
             $contents[$urlk]['url'] = $url . $urlk;
-            $preview[] = $this->outputpreview($contents, $urlk, $url);
+            $preview[] = $this->outputpreview($contents, $urlk, $url, $values);
         }
         
         $values['previews'] = $preview;
@@ -313,19 +315,21 @@ abstract class AbstractModule
         return $template($values);
     }
 
-    protected function outputpreview($contents, $targetSite, $url)
+    protected function outputpreview($contents, $targetSite, $url, $values)
     {
-        return $this->defaultoutput('preview', $contents, $targetSite, $url);
+        return $this->defaultoutput('preview', $contents, $targetSite, $url, $values);
     }
 
-    protected function defaultoutput($view, $contents, $targetSite, $url)
+    protected function defaultoutput($view, $contents, $targetSite, $url, $values)
     {
         $rawContent = $contents[$targetSite]['content'];
         $htmlContent = $this->parsedown->text($rawContent);
         
-        $values = array(
-            'content' => $htmlContent
-        );
+        if ($values == null)
+            $values = array();
+        
+        $values['content'] = $htmlContent;
+        
         foreach ($this->fields as $field) {
             if (array_key_exists($field, $contents[$targetSite]) && $field != 'content')
                 $values[$field] = $contents[$targetSite][$field];

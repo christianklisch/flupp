@@ -1,2 +1,4 @@
 classname: Base
 name: Main News site
+references:
+	faq : /faq
