@@ -261,7 +261,7 @@ abstract class AbstractModule
         $this->order = $order;
     }
 
-    public function output($view, $contents = array(), $targetSite, $url, $values)
+    public function output($view, $contents = array(), $targetSite, $url, $values, $allContent = array(), $systemUrl = '')
     {
         $this->parsedown = new \Parsedown();
         

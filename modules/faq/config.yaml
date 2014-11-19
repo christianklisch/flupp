@@ -2,3 +2,4 @@ classname: Base
 name: FAQ CMS sites
 references:
 	news : /news
+	tags : /tags

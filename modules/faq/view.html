@@ -1,0 +1,12 @@
+{% block view %}
+<div class="content">
+		{{ content | safe }}
+		
+		<h3>tagged as</h3>
+		<ul class="">
+			{% for titlen , url in tags %}
+				<li><a href="{{ url }}">{{ titlen }}</a></li>
+			{% endfor %}	
+		</ul>		
+</div>
+{% endblock %}
